@@ -31,6 +31,9 @@ public class BandcampEditorGUI extends JFrame {
     private List<String> modifiedLines = null;
     private final StringBuilder changeLog = new StringBuilder();
 
+    /* This is the version to work on, ignore the other branch */
+// Constructor to set up the GUI
+
     public BandcampEditorGUI() {
         setTitle("Bandcamp Tiedoston Muokkaus");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
