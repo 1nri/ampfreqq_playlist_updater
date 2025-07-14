@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class BandcampEditorGUI extends JFrame {
+public class APEGUI extends JFrame {
 
     private JTextField filePathField;
     private JTextField rowNumberField;
@@ -32,10 +32,11 @@ public class BandcampEditorGUI extends JFrame {
     private final StringBuilder changeLog = new StringBuilder();
 
     /* This is the version to work on, ignore the other branch */
-// Constructor to set up the GUI
 
-    public BandcampEditorGUI() {
-        setTitle("Bandcamp Tiedoston Muokkaus");
+    // Constructor to set up the GUI
+
+    public APEGUI() {
+        setTitle("AmpFreQQ Playlist Editor APE");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(1000, 800);
         setLocationRelativeTo(null);
@@ -50,13 +51,13 @@ public class BandcampEditorGUI extends JFrame {
         matchStringsField = new JTextField();
         matchTargetsField = new JTextField();
 
-        insertButton = new JButton("Lisää rivi");
-        browseButton = new JButton("Selaa...");
-        previewButton = new JButton("Esikatsele muutokset");
-        swapButton = new JButton("Vaihda rivien paikkaa");
-        swapByContentButton = new JButton("Vaihda rivit sisällön perusteella");
-        saveButton = new JButton("Tallenna muutokset");
-        clearPreviewButton = new JButton("Tyhjennä esikatselu");
+        insertButton = new JButton("Add Row");
+        browseButton = new JButton("Browse...");
+        previewButton = new JButton("Preview Changes");
+        swapButton = new JButton("Swap Rows");
+        swapByContentButton = new JButton("Swap Rows By Content");
+        saveButton = new JButton("Save Changes");
+        clearPreviewButton = new JButton("Clear Preview");
 
         outputArea = new JTextArea();
         outputArea.setEditable(false);
@@ -66,31 +67,31 @@ public class BandcampEditorGUI extends JFrame {
         logArea.setEditable(false);
         logArea.setFont(new Font("Monospaced", Font.PLAIN, 11));
 
-        panel.add(new JLabel("Tiedoston polku:"));
+        panel.add(new JLabel("Path To File:"));
         panel.add(filePathField);
         panel.add(browseButton);
 
-        panel.add(new JLabel("Rivin numero (lisäys):"));
+        panel.add(new JLabel("Row Number (Insert):"));
         panel.add(rowNumberField);
         panel.add(new JLabel());
 
-        panel.add(new JLabel("Lisättävä rivi (ilman numerointia):"));
+        panel.add(new JLabel("The row to be added (withouth numbering):"));
         panel.add(newLineField);
         panel.add(insertButton);
 
-        panel.add(new JLabel("Rivit vaihdettavaksi (esim. 3,7):"));
+        panel.add(new JLabel("Numbers for Rows to Swap (eg. 3,7):"));
         panel.add(swapRowsField);
         panel.add(swapButton);
 
-        panel.add(new JLabel("Vaihda rivit sisällön mukaan (merkkijonot):"));
+        panel.add(new JLabel("Content of Rows to Swap (Character Strings):"));
         panel.add(matchStringsField);
-        panel.add(new JLabel("merkkijonot pilkulla eroteltuna"));
+        panel.add(new JLabel("Character Strings to Match, separated by commas:"));
 
-        panel.add(new JLabel("Vastaavat kohderivit (numerot tai merkkijonot):"));
+        panel.add(new JLabel("Target rows (number or character strings):"));
         panel.add(matchTargetsField);
         panel.add(swapByContentButton);
 
-        panel.add(new JLabel("Uusi tiedostonimi (valinnainen):"));
+        panel.add(new JLabel("New File Name (optional):"));
         panel.add(saveAsField);
         panel.add(saveButton);
 
@@ -122,7 +123,7 @@ public class BandcampEditorGUI extends JFrame {
         try {
             Files.writeString(logPath, changeLog.toString());
         } catch (IOException e) {
-            outputArea.setText("Lokitiedoston tallennus epäonnistui: " + e.getMessage());
+            outputArea.setText("Log file couldn't be saved: " + e.getMessage());
         }
     }
 
@@ -132,7 +133,7 @@ public class BandcampEditorGUI extends JFrame {
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             filePathField.setText(selectedFile.getAbsolutePath());
-            logChange("Tiedosto valittu: " + selectedFile.getName());
+            logChange("File selected: " + selectedFile.getName());
         }
     }
 
@@ -145,7 +146,7 @@ public class BandcampEditorGUI extends JFrame {
         try {
             insertAt = Integer.parseInt(rowStr);
         } catch (NumberFormatException e) {
-            outputArea.setText("Virheellinen rivinumero.");
+            outputArea.setText("Incorrect Row.");
             return;
         }
 
@@ -171,14 +172,14 @@ public class BandcampEditorGUI extends JFrame {
 
             modifiedLines = previewLines;
             outputArea.setText(String.join("\n", previewLines));
-            logChange("Esikatselu: rivi lisätty kohtaan " + insertAt);
+            logChange("Preview: Row added to " + insertAt);
         } catch (IOException ex) {
-            outputArea.setText("Virhe tiedoston käsittelyssä: " + ex.getMessage());
+            outputArea.setText("Editing of file failed: " + ex.getMessage());
         }
     }
 
     private void insertLine() {
-        outputArea.setText("Käytä ensin esikatselutoimintoa ja sen jälkeen 'Tallenna muutokset'.");
+        outputArea.setText("Preview first and select 'Save file' afterwards.");
     }
 
     private void swapLines() {
@@ -192,7 +193,7 @@ public class BandcampEditorGUI extends JFrame {
                     .collect(Collectors.toList());
 
             if (indices.size() < 2) {
-                outputArea.setText("Anna vähintään kaksi rivinumeroa erotettuna pilkulla.");
+                outputArea.setText("You need to provide at least two numbers separated by a comma.");
                 return;
             }
 
@@ -214,9 +215,9 @@ public class BandcampEditorGUI extends JFrame {
 
             modifiedLines = lines;
             outputArea.setText(String.join("\n", lines));
-            logChange("Rivien paikat vaihdettu: " + swapInput);
+            logChange("Swapped the rows: " + swapInput);
         } catch (Exception e) {
-            outputArea.setText("Virhe rivien vaihdossa: " + e.getMessage());
+            outputArea.setText("Failed swapping the rows: " + e.getMessage());
         }
     }
 
@@ -238,20 +239,20 @@ public class BandcampEditorGUI extends JFrame {
                     }
                 }
                 if (foundIndex == -1) {
-                    outputArea.setText("Merkkijonoa ei löytynyt: " + key.trim());
+                    outputArea.setText("Couldn't find the following string of characters: " + key.trim());
                     return;
                 }
                 matches.put(key.trim(), foundIndex);
             }
 
-            StringBuilder confirmation = new StringBuilder("Vahvista seuraavat löydöt:\n");
+            StringBuilder confirmation = new StringBuilder("Confirm the following results:\n");
             for (String key : matches.keySet()) {
-                confirmation.append("[" + key + "] => rivi " + matches.get(key) + "\n");
+                confirmation.append("[" + key + "] => row " + matches.get(key) + "\n");
             }
 
-            int result = JOptionPane.showConfirmDialog(this, confirmation.toString(), "Vahvista vaihto", JOptionPane.YES_NO_OPTION);
+            int result = JOptionPane.showConfirmDialog(this, confirmation.toString(), "Confirm swap", JOptionPane.YES_NO_OPTION);
             if (result != JOptionPane.YES_OPTION) {
-                outputArea.setText("Toiminto peruttu.");
+                outputArea.setText("Canceled.");
                 return;
             }
 
@@ -266,9 +267,9 @@ public class BandcampEditorGUI extends JFrame {
 
             modifiedLines = lines;
             outputArea.setText(String.join("\n", lines));
-            logChange("Rivien paikat vaihdettu sisällön perusteella: " + matchStringsField.getText());
+            logChange("Swapped the following rows based on content: " + matchStringsField.getText());
         } catch (IOException e) {
-            outputArea.setText("Virhe rivien vaihdossa sisällön perusteella: " + e.getMessage());
+            outputArea.setText("Failed swapping the rowsbased on the following content: " + e.getMessage());
         }
     }
 
@@ -277,7 +278,7 @@ public class BandcampEditorGUI extends JFrame {
         String originalPath = filePathField.getText().trim();
 
         if (modifiedLines == null) {
-            outputArea.setText("Ei muutoksia tallennettavaksi. Tee ensin esikatselu tai vaihto.");
+            outputArea.setText("No changes to save. Preview or swap records first.");
             return;
         }
 
@@ -286,20 +287,20 @@ public class BandcampEditorGUI extends JFrame {
             Path target = saveName.isEmpty() ? original : original.resolveSibling(saveName);
             Files.write(target, modifiedLines);
             saveLogAutomatically(original);
-            outputArea.setText("Muutokset tallennettu tiedostoon: " + target);
-            logChange("Tallennettu tiedostoon: " + target.getFileName());
+            outputArea.setText("Saved changes to file: " + target);
+            logChange("Saved to file: " + target.getFileName());
         } catch (IOException e) {
-            outputArea.setText("Virhe tallennuksessa: " + e.getMessage());
+            outputArea.setText("Error saving the file: " + e.getMessage());
         }
     }
 
     private void clearPreview() {
         modifiedLines = null;
-        outputArea.setText("Esikatselu tyhjennetty.");
-        logChange("Esikatselu tyhjennetty.");
+        outputArea.setText("Preview cleared.");
+        logChange("Preview cleared.");
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new BandcampEditorGUI().setVisible(true));
+        SwingUtilities.invokeLater(() -> new APEGUI().setVisible(true));
     }
 }
