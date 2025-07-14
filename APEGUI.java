@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
@@ -34,8 +35,7 @@ public class APEGUI extends JFrame {
     private JButton previewContentButton;
     private JTextArea outputArea;
     private JTextArea logArea;
-    private JTextArea textArea1;
-    private JTextArea textArea2;
+    private String absolutePath;
 
     /* This is not functional as of yet
         SwingUtilities.invokeLater(() -> {
@@ -70,8 +70,6 @@ public class APEGUI extends JFrame {
         setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new GridLayout(10, 3));
-        textArea1 = new JTextArea("Drag file here");
-        textArea2 = new JTextArea("Drop file here");
         filePathField = new JTextField();
         rowNumberField = new JTextField();
         newLineField = new JTextField();
@@ -89,11 +87,12 @@ public class APEGUI extends JFrame {
         clearPreviewButton = new JButton("Clear Preview");
         previewContentButton = new JButton("Preview Content");
 
-        textArea1.setDragEnabled(true);
-        textArea2.setDragEnabled(true);
+        filePathField.setDragEnabled(true);
+        newLineField.setDragEnabled(true);
+
         filePathField.setEditable(false);
-            filePathField.setFont(new Font("Monospaced", Font.PLAIN, 14));
-            filePathField.setHorizontalAlignment(JTextField.CENTER);
+        filePathField.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        filePathField.setHorizontalAlignment(JTextField.CENTER);
 /*
             // Lisätään pudotustuki
             new DropTarget(filePathField, new DropTargetListener() {
@@ -178,16 +177,170 @@ public class APEGUI extends JFrame {
         panel.add(saveAsField);
         panel.add(saveButton);
 
-        panel.add(new JLabel("Preview content"));
         panel.add(previewContentButton);
-
-        panel.add(new JLabel());
         panel.add(previewButton);
         panel.add(clearPreviewButton);
 
         add(panel, BorderLayout.NORTH);
         add(new JScrollPane(outputArea), BorderLayout.CENTER);
         add(new JScrollPane(logArea), BorderLayout.SOUTH);
+        absolutePath = "";
+
+        new DropTarget(newLineField, new DropTargetListener() {
+                @Override
+                public void dragEnter(DropTargetDragEvent dtde) {}
+
+                @Override
+                public void dragOver(DropTargetDragEvent dtde) {}
+
+                @Override
+                public void dropActionChanged(DropTargetDragEvent dtde) {}
+
+                @Override
+                public void dragExit(DropTargetEvent dte) {}
+
+                @Override
+                public void drop(DropTargetDropEvent dtde) {
+                    try {
+                        dtde.acceptDrop(DnDConstants.ACTION_COPY);
+                        Object transferData = dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+
+                        if (transferData instanceof List) {
+                            List<?> droppedFiles = (List<?>) transferData;
+                            if (!droppedFiles.isEmpty() && droppedFiles.get(0) instanceof File) {
+                                prepareFileName(droppedFiles);
+                                   
+                            }
+                            else{
+                            outputArea.setText("Please drop a supported audio file.");
+                            return;
+                        }
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        outputArea.setText("Couldn't read the file");
+                    }
+                }
+
+                private void prepareFileName(List<?> object) {
+                    int number = 0; // default number
+                    File file = (File) object.get(0);
+                    String canonicalPath;
+                    try {
+                        canonicalPath = file.getCanonicalPath(); // reveals mount points and symlinks
+                        } catch (IOException e) {
+                            System.err.println("Virheellinen polku.");
+                            return;
+                        }
+                        String volumePrefix;
+                        String relativePath;
+                        
+                        if(file.getName().endsWith(".mp3") || file.getName().endsWith(".m4a") ||  file.getName().endsWith(".wav") 
+                        || file.getName().endsWith(".aiff") || file.getName().endsWith(".flac"))
+                        {
+                            
+                            try {
+                                absolutePath = file.getCanonicalPath(); // resolves symlinks and gets the absolute path
+                                } 
+                                catch (IOException e) {
+                                    System.err.println("Incorrect path.");
+                                    return;
+                                }}
+                                else{
+                            outputArea.setText("Please drop a supported audio file.");
+                            return;
+                        }
+
+                                    
+                // 3. Determine the of Volume (volumename)
+
+                volumePrefix = "";
+
+                if (absolutePath.startsWith("/Volumes/")) {
+
+                        // esim: /Volumes/mbadrive/Users/henri/Music/song.aiff
+                    String remainder = canonicalPath.substring("/Volumes/".length()); // mbadrive/Users/...
+                        int slashIndex = remainder.indexOf('/');
+                        if (slashIndex != -1) {
+                            String volumeName = remainder.substring(0, slashIndex);
+                            relativePath = remainder.substring(slashIndex); // esim. /Users/henri/...
+                            volumePrefix = volumeName + ":";
+                        } else {
+                            System.err.println("Virhe: Polussa ei ole kansiorakennetta levynimen jälkeen.");
+                            return;
+                        }
+                    } else {
+                        // oletetaan root-levy
+                        volumePrefix = getRootVolumeName();
+                        relativePath = canonicalPath;
+                    }
+
+                        // 4. Determine display name for given file
+                        String fileName = file.getName(); 
+                        String displayName = fileName.replaceFirst("\\.[^.]+$", "");
+
+                        // 5. Format the result string
+
+                        String result = String.format(
+                            "%d, \"%s%s\" \"%s\";",
+                            number,
+                            volumePrefix,
+                            absolutePath,
+                            displayName
+                            );
+
+                            // 6. Print the result
+                            System.out.println("Muodostettu merkkijono:");
+                            System.out.println(result);
+                            // newLineField.setText(result);
+                            newLineField.setText(file.getAbsolutePath());
+                        }
+                        
+                    }
+                     
+                
+            );
+
+            new DropTarget(filePathField, new DropTargetListener() {
+                @Override
+                public void dragEnter(DropTargetDragEvent dtde) {}
+
+                @Override
+                public void dragOver(DropTargetDragEvent dtde) {}
+
+                @Override
+                public void dropActionChanged(DropTargetDragEvent dtde) {}
+
+                @Override
+                public void dragExit(DropTargetEvent dte) {}
+
+                @Override
+                public void drop(DropTargetDropEvent dtde) {
+                    try {
+                        dtde.acceptDrop(DnDConstants.ACTION_COPY);
+                        Object transferData = dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+
+                        if (transferData instanceof List) {
+                            List<?> droppedFiles = (List<?>) transferData;
+                            if (!droppedFiles.isEmpty() && droppedFiles.get(0) instanceof File) {
+                                File file = (File) droppedFiles.get(0);
+                                if(file.getName().endsWith(".txt")){    
+                                    filePathField.setText(file.getAbsolutePath());
+                                }
+                                else{
+                                    outputArea.setText("Please drop a valid TXT file.");
+                                    return;
+                                }
+                            }
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        outputArea.setText("Couldn't read the file");
+                    }
+                }
+            });
+
+        
 
         insertButton.addActionListener(e -> insertLine());
         browseButton.addActionListener(e -> browseFile());
@@ -399,6 +552,29 @@ public class APEGUI extends JFrame {
         }
     }
 
+    // Determines name for root disk
+    private String getRootVolumeName() {
+        File root = new File("/");
+        File[] roots = File.listRoots();
+
+        for (File f : roots) {
+            try {
+                if (f.getCanonicalPath().equals(root.getCanonicalPath())) {
+                    // "/" is this root, so we can use its name
+                    String[] pathParts = f.getAbsolutePath().split("/");
+                    if (pathParts.length > 0) {
+                        // Return default root name
+                        return "Macintosh HD:";
+                    }
+                }
+            } catch (IOException e) {
+                outputArea.setText("Couldn't read the file");
+            }
+        }
+
+        // default root name if nothing else is found
+        return "root:";
+    }
 
     private void clearPreview() {
         modifiedLines = null;

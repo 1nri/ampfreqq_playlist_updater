@@ -1,0 +1,91 @@
+import java.io.File;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class MetadataFormatterWithVolume {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        // 1. Kysy järjestysnumero
+        System.out.print("Anna järjestysnumero (esim. 94): ");
+        int number = scanner.nextInt();
+        scanner.nextLine(); // tyhjennä rivinvaihto
+
+        // 2. Kysy tiedoston polku
+        System.out.print("Anna tiedoston koko polku: ");
+        String inputPath = scanner.nextLine().trim();
+
+        File file = new File(inputPath);
+
+        if (!file.exists()) {
+            System.err.println("Virhe: Tiedostoa ei löydy polusta: " + inputPath);
+            return;
+        }
+
+        String absolutePath = "";
+        try {
+            absolutePath = file.getCanonicalPath(); // ratkaisee symboliset linkit ja ..
+        } catch (IOException e) {
+            System.err.println("Virheellinen polku.");
+            return;
+        }
+
+        // 3. Päätä levyosion nimi (volumename)
+        String volumePrefix = "";
+
+        if (absolutePath.startsWith("/Volumes/")) {
+            // Esimerkiksi: /Volumes/mbadrive/...
+            String remainder = absolutePath.substring("/Volumes/".length());
+            int nextSlash = remainder.indexOf('/');
+            if (nextSlash != -1) {
+                String volumeName = remainder.substring(0, nextSlash);
+                volumePrefix = volumeName + ":";
+                absolutePath = "/" + remainder; // poista /Volumes-osuus
+            }
+        } else {
+            // Esim. /Users/... → oletetaan root-levyksi
+            volumePrefix = getRootVolumeName();
+        }
+
+        // 4. Poimi tiedoston esitysnimi (ilman päätettä)
+        String fileName = file.getName();
+        String displayName = fileName.replaceFirst("\\.[^.]+$", "");
+
+        // 5. Muodosta lopullinen merkkijono
+        String result = String.format(
+            "%d, \"%s%s\" \"%s\";",
+            number,
+            volumePrefix,
+            absolutePath,
+            displayName
+        );
+
+        System.out.println("Muodostettu merkkijono:");
+        System.out.println(result);
+    }
+
+    // Yrittää päätellä root-levyn nimen (esim. Macintosh HD)
+    private static String getRootVolumeName() {
+        File root = new File("/");
+        File[] roots = File.listRoots();
+
+        for (File f : roots) {
+            try {
+                if (f.getCanonicalPath().equals(root.getCanonicalPath())) {
+                    // Tiedetään, että "/" on tämä juuri
+                    String[] pathParts = f.getAbsolutePath().split("/");
+                    if (pathParts.length > 0) {
+                        // Palauta oletusnimi root-levylle, esim. "Macintosh HD:"
+                        return "Macintosh HD:";
+                    }
+                }
+            } catch (IOException e) {
+                // Jatka
+            }
+        }
+
+        // Jos ei saada selville, käytetään oletusta
+        return "root:";
+    }
+}
