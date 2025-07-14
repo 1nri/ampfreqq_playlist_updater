@@ -34,19 +34,14 @@ public class APEGUI extends JFrame {
     private JButton previewContentButton;
     private JTextArea outputArea;
     private JTextArea logArea;
-    // Tekstialueet
-            private JTextArea textArea1;
-            private JTextArea textArea2;
+    private JTextArea textArea1;
+    private JTextArea textArea2;
 
-    /*
+    /* This is not functional as of yet
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Raahaa ja pudota -esimerkki");
+            JFrame frame = new JFrame("Drag and drop example");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(400, 300);
-
-            // Tekstialueet
-            JTextArea textArea1 = new JTextArea("Raahaa tämä teksti");
-            JTextArea textArea2 = new JTextArea("Pudota teksti tänne");
 
             // Otetaan käyttöön raahaus ja pudotus
             textArea1.setDragEnabled(true);
@@ -76,7 +71,7 @@ public class APEGUI extends JFrame {
 
         JPanel panel = new JPanel(new GridLayout(10, 3));
         textArea1 = new JTextArea("Drag file here");
-        textArea2 = new JTextArea("Drop file here")
+        textArea2 = new JTextArea("Drop file here");
         filePathField = new JTextField();
         rowNumberField = new JTextField();
         newLineField = new JTextField();
@@ -99,7 +94,7 @@ public class APEGUI extends JFrame {
         filePathField.setEditable(false);
             filePathField.setFont(new Font("Monospaced", Font.PLAIN, 14));
             filePathField.setHorizontalAlignment(JTextField.CENTER);
-
+/*
             // Lisätään pudotustuki
             new DropTarget(filePathField, new DropTargetListener() {
                 @Override
@@ -146,6 +141,7 @@ public class APEGUI extends JFrame {
                 }
             });
 
+            */
         outputArea = new JTextArea();
         outputArea.setEditable(false);
         outputArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
