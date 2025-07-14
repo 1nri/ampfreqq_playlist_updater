@@ -1,5 +1,11 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.file.*;
@@ -25,8 +31,35 @@ public class APEGUI extends JFrame {
     private JButton swapByContentButton;
     private JButton saveButton;
     private JButton clearPreviewButton;
+    private JButton previewContentButton;
     private JTextArea outputArea;
     private JTextArea logArea;
+    // Tekstialueet
+            private JTextArea textArea1;
+            private JTextArea textArea2;
+
+    /*
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Raahaa ja pudota -esimerkki");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(400, 300);
+
+            // Tekstialueet
+            JTextArea textArea1 = new JTextArea("Raahaa tämä teksti");
+            JTextArea textArea2 = new JTextArea("Pudota teksti tänne");
+
+            // Otetaan käyttöön raahaus ja pudotus
+            textArea1.setDragEnabled(true);
+            textArea2.setDragEnabled(true);
+
+            // Layout
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                                                  new JScrollPane(textArea1),
+                                                  new JScrollPane(textArea2));
+            frame.add(splitPane, BorderLayout.CENTER);
+            frame.setVisible(true);
+        });
+     */
 
     private List<String> modifiedLines = null;
     private final StringBuilder changeLog = new StringBuilder();
@@ -42,7 +75,8 @@ public class APEGUI extends JFrame {
         setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new GridLayout(10, 3));
-
+        textArea1 = new JTextArea("Drag file here");
+        textArea2 = new JTextArea("Drop file here")
         filePathField = new JTextField();
         rowNumberField = new JTextField();
         newLineField = new JTextField();
@@ -58,6 +92,59 @@ public class APEGUI extends JFrame {
         swapByContentButton = new JButton("Swap Rows By Content");
         saveButton = new JButton("Save Changes");
         clearPreviewButton = new JButton("Clear Preview");
+        previewContentButton = new JButton("Preview Content");
+
+        textArea1.setDragEnabled(true);
+        textArea2.setDragEnabled(true);
+        filePathField.setEditable(false);
+            filePathField.setFont(new Font("Monospaced", Font.PLAIN, 14));
+            filePathField.setHorizontalAlignment(JTextField.CENTER);
+
+            // Lisätään pudotustuki
+            new DropTarget(filePathField, new DropTargetListener() {
+                @Override
+                public void dragEnter(DropTargetDragEvent dtde) {}
+
+                @Override
+                public void dragOver(DropTargetDragEvent dtde) {}
+
+                @Override
+                public void dropActionChanged(DropTargetDragEvent dtde) {}
+
+                @Override
+                public void dragExit(DropTargetEvent dte) {}
+
+                @Override
+                public void drop(DropTargetDropEvent dtde) {
+                    try {
+                        dtde.acceptDrop(DnDConstants.ACTION_COPY);
+                        Object transferData = dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+
+                        if (transferData instanceof List) {
+                            List<?> droppedFiles = (List<?>) transferData;
+                            if (!droppedFiles.isEmpty() && droppedFiles.get(0) instanceof File) {
+                                File file = (File) droppedFiles.get(0);
+                                filePathField.setText(file.getAbsolutePath());
+                            }
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        filePathField.setText("Virhe tiedoston lukemisessa");
+                    }
+                }
+
+                @Override
+                public void dragExit(DropTargetEvent arg0) {
+                    // TODO Auto-generated method stub
+                    throw new UnsupportedOperationException("Unimplemented method 'dragExit'");
+                }
+
+                @Override
+                public void drop(DropTargetDropEvent arg0) {
+                    // TODO Auto-generated method stub
+                    throw new UnsupportedOperationException("Unimplemented method 'drop'");
+                }
+            });
 
         outputArea = new JTextArea();
         outputArea.setEditable(false);
@@ -75,7 +162,7 @@ public class APEGUI extends JFrame {
         panel.add(rowNumberField);
         panel.add(new JLabel());
 
-        panel.add(new JLabel("The row to be added (withouth numbering):"));
+        panel.add(new JLabel("The row to be added (without numbering):"));
         panel.add(newLineField);
         panel.add(insertButton);
 
@@ -95,6 +182,9 @@ public class APEGUI extends JFrame {
         panel.add(saveAsField);
         panel.add(saveButton);
 
+        panel.add(new JLabel("Preview content"));
+        panel.add(previewContentButton);
+
         panel.add(new JLabel());
         panel.add(previewButton);
         panel.add(clearPreviewButton);
@@ -110,6 +200,7 @@ public class APEGUI extends JFrame {
         swapByContentButton.addActionListener(e -> swapLinesByContent());
         saveButton.addActionListener(e -> saveChanges());
         clearPreviewButton.addActionListener(e -> clearPreview());
+        previewContentButton.addActionListener(e -> previewContent());
     }
 
     private void logChange(String description) {
@@ -293,6 +384,25 @@ public class APEGUI extends JFrame {
             outputArea.setText("Error saving the file: " + e.getMessage());
         }
     }
+
+    private void previewContent() {
+        String filePath = filePathField.getText().trim();
+
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(filePath));
+            List<String> previewLines = new ArrayList<>();
+
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i);
+                previewLines.add(line);
+            }
+            outputArea.setText(String.join("\n", previewLines));
+            logChange("Preview ");
+        } catch (IOException ex) {
+            outputArea.setText("Preview  failed: " + ex.getMessage());
+        }
+    }
+
 
     private void clearPreview() {
         modifiedLines = null;
