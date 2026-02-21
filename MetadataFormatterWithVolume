@@ -7,52 +7,52 @@ public class MetadataFormatterWithVolume {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        // 1. Kysy järjestysnumero
-        System.out.print("Anna järjestysnumero (esim. 94): ");
+        // 1. Ask for sequence number
+        System.out.print("Enter sequence number (e.g., 94): ");
         int number = scanner.nextInt();
-        scanner.nextLine(); // tyhjennä rivinvaihto
+        scanner.nextLine(); // clear line break
 
-        // 2. Kysy tiedoston polku
-        System.out.print("Anna tiedoston koko polku: ");
+        // 2. Ask for file path
+        System.out.print("Enter full file path: ");
         String inputPath = scanner.nextLine().trim();
 
         File file = new File(inputPath);
 
         if (!file.exists()) {
-            System.err.println("Virhe: Tiedostoa ei löydy polusta: " + inputPath);
+            System.err.println("Error: File not found at path: " + inputPath);
             return;
         }
 
         String absolutePath = "";
         try {
-            absolutePath = file.getCanonicalPath(); // ratkaisee symboliset linkit ja ..
+            absolutePath = file.getCanonicalPath(); // resolves symlinks and ..
         } catch (IOException e) {
-            System.err.println("Virheellinen polku.");
+            System.err.println("Invalid path.");
             return;
         }
 
-        // 3. Päätä levyosion nimi (volumename)
+        // 3. Determine partition name (volume name)
         String volumePrefix = "";
 
         if (absolutePath.startsWith("/Volumes/")) {
-            // Esimerkiksi: /Volumes/mbadrive/...
+            // Example: /Volumes/mbadrive/...
             String remainder = absolutePath.substring("/Volumes/".length());
             int nextSlash = remainder.indexOf('/');
             if (nextSlash != -1) {
                 String volumeName = remainder.substring(0, nextSlash);
                 volumePrefix = volumeName + ":";
-                absolutePath = "/" + remainder; // poista /Volumes-osuus
+                absolutePath = "/" + remainder; // remove /Volumes portion
             }
         } else {
-            // Esim. /Users/... → oletetaan root-levyksi
+            // Example: /Users/... → assumed as root volume
             volumePrefix = getRootVolumeName();
         }
 
-        // 4. Poimi tiedoston esitysnimi (ilman päätettä)
+        // 4. Extract file display name (without extension)
         String fileName = file.getName();
         String displayName = fileName.replaceFirst("\\.[^.]+$", "");
 
-        // 5. Muodosta lopullinen merkkijono
+        // 5. Build final string
         String result = String.format(
             "%d, \"%s%s\" \"%s\";",
             number,
@@ -61,11 +61,11 @@ public class MetadataFormatterWithVolume {
             displayName
         );
 
-        System.out.println("Muodostettu merkkijono:");
+        System.out.println("Generated string:");
         System.out.println(result);
     }
 
-    // Yrittää päätellä root-levyn nimen (esim. Macintosh HD)
+    // Attempts to determine the root volume name (e.g., Macintosh HD)
     private static String getRootVolumeName() {
         File root = new File("/");
         File[] roots = File.listRoots();
@@ -73,19 +73,19 @@ public class MetadataFormatterWithVolume {
         for (File f : roots) {
             try {
                 if (f.getCanonicalPath().equals(root.getCanonicalPath())) {
-                    // Tiedetään, että "/" on tämä juuri
+                    // We know that "/" is this root
                     String[] pathParts = f.getAbsolutePath().split("/");
                     if (pathParts.length > 0) {
-                        // Palauta oletusnimi root-levylle, esim. "Macintosh HD:"
+                        // Return default name for root volume, e.g., "Macintosh HD:"
                         return "Macintosh HD:";
                     }
                 }
             } catch (IOException e) {
-                // Jatka
+                // Continue
             }
         }
 
-        // Jos ei saada selville, käytetään oletusta
+        // If not available, use default
         return "root:";
     }
 }

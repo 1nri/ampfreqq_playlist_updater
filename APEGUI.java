@@ -10,6 +10,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.file.*;
+import java.nio.file.attribute.FileStoreAttributeView;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -43,7 +44,7 @@ public class APEGUI extends JFrame {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(400, 300);
 
-            // Otetaan käyttöön raahaus ja pudotus
+            // Enable drag and drop
             textArea1.setDragEnabled(true);
             textArea2.setDragEnabled(true);
 
@@ -123,7 +124,7 @@ public class APEGUI extends JFrame {
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();
-                        filePathField.setText("Virhe tiedoston lukemisessa");
+                        filePathField.setText("Error reading file");
                     }
                 }
 
@@ -229,7 +230,7 @@ public class APEGUI extends JFrame {
                     try {
                         canonicalPath = file.getCanonicalPath(); // reveals mount points and symlinks
                         } catch (IOException e) {
-                            System.err.println("Virheellinen polku.");
+                            System.err.println("Invalid path.");
                             return;
                         }
                         String volumePrefix;
@@ -255,45 +256,40 @@ public class APEGUI extends JFrame {
                 // 3. Determine the of Volume (volumename)
 
                 volumePrefix = "";
-
-                if (absolutePath.startsWith("/Volumes/")) {
-
-                        // esim: /Volumes/mbadrive/Users/henri/Music/song.aiff
-                    String remainder = canonicalPath.substring("/Volumes/".length()); // mbadrive/Users/...
-                        int slashIndex = remainder.indexOf('/');
-                        if (slashIndex != -1) {
-                            String volumeName = remainder.substring(0, slashIndex);
-                            relativePath = remainder.substring(slashIndex); // esim. /Users/henri/...
-                            volumePrefix = volumeName + ":";
-                        } else {
-                            System.err.println("Virhe: Polussa ei ole kansiorakennetta levynimen jälkeen.");
-                            return;
-                        }
+                relativePath = "";
+                
+                if (canonicalPath.startsWith("/Volumes/")) {
+                    // External/mounted volume: /Volumes/volumename/path/to/file
+                    String remainder = canonicalPath.substring("/Volumes/".length()); // volumename/path/...
+                    int slashIndex = remainder.indexOf('/');
+                    if (slashIndex != -1) {
+                        String volumeName = remainder.substring(0, slashIndex);
+                        relativePath = remainder.substring(slashIndex); // /path/to/file
+                        volumePrefix = volumeName + ":";
                     } else {
-                        // oletetaan root-levy
-                        volumePrefix = getRootVolumeName();
-                        relativePath = canonicalPath;
+                        System.err.println("Error: Path does not have directory structure after volume name.");
+                        return;
                     }
+                } else {
+                    // System volume - detect actual volume name using FileStore
+                    String detectedVolumeName = getVolumeNameFromPath(canonicalPath);
+                    volumePrefix = detectedVolumeName + ":";
+                    relativePath = canonicalPath;
+                }
 
                         // 4. Determine display name for given file
                         String fileName = file.getName(); 
                         String displayName = fileName.replaceFirst("\\.[^.]+$", "");
 
-                        // 5. Format the result string
-
-                        String result = String.format(
-                            "%d, \"%s%s\" \"%s\";",
-                            number,
+                        // 5. Format the content (without row number - row number will be added during preview)
+                        String contentOnly = String.format(
+                            "\"%s%s\" \"%s\";",
                             volumePrefix,
-                            absolutePath,
+                            relativePath,
                             displayName
                             );
 
-                            // 6. Print the result
-                            System.out.println("Muodostettu merkkijono:");
-                            System.out.println(result);
-                            // newLineField.setText(result);
-                            newLineField.setText(file.getAbsolutePath());
+                            newLineField.setText(contentOnly);
                         }
                         
                     }
@@ -392,27 +388,37 @@ public class APEGUI extends JFrame {
 
         try {
             List<String> lines = Files.readAllLines(Paths.get(filePath));
-            List<String> previewLines = new ArrayList<>();
+            List<String> contentList = new ArrayList<>();
 
-            for (int i = 0; i <= lines.size(); i++) {
-                if (i == insertAt) {
-                    previewLines.add(insertAt + ", " + newContent);
+            // Extract content from all existing rows
+            for (String line : lines) {
+                int commaIndex = line.indexOf(',');
+                if (commaIndex != -1) {
+                    String content = line.substring(commaIndex + 1).trim();
+                    contentList.add(content);
+                } else {
+                    contentList.add(line);
                 }
-                if (i < lines.size()) {
-                    String line = lines.get(i);
-                    int commaIndex = line.indexOf(',');
-                    if (commaIndex != -1) {
-                        String content = line.substring(commaIndex + 1).trim();
-                        previewLines.add((i >= insertAt ? i + 1 : i) + ", " + content);
-                    } else {
-                        previewLines.add(line);
-                    }
-                }
+            }
+
+            // Validate insertAt
+            if (insertAt < 0 || insertAt > contentList.size()) {
+                outputArea.setText("Row number out of range. Valid range: 0 to " + contentList.size());
+                return;
+            }
+
+            // Insert new content at the specified position
+            contentList.add(insertAt, newContent);
+
+            // Create preview with sequential numbering
+            List<String> previewLines = new ArrayList<>();
+            for (int i = 0; i < contentList.size(); i++) {
+                previewLines.add(i + ", " + contentList.get(i));
             }
 
             modifiedLines = previewLines;
             outputArea.setText(String.join("\n", previewLines));
-            logChange("Preview: Row added to " + insertAt);
+            logChange("Preview: Row added at position " + insertAt);
         } catch (IOException ex) {
             outputArea.setText("Editing of file failed: " + ex.getMessage());
         }
@@ -427,35 +433,49 @@ public class APEGUI extends JFrame {
         String swapInput = swapRowsField.getText().trim();
 
         try {
-            List<Integer> indices = Arrays.stream(swapInput.split(","))
+            List<Integer> rowNumbers = Arrays.stream(swapInput.split(","))
                     .map(String::trim)
                     .map(Integer::parseInt)
                     .collect(Collectors.toList());
 
-            if (indices.size() < 2) {
+            if (rowNumbers.size() < 2) {
                 outputArea.setText("You need to provide at least two numbers separated by a comma.");
                 return;
             }
 
             List<String> lines = Files.readAllLines(Paths.get(filePath));
+            
+            // Extract content from specified row numbers
             Map<Integer, String> contentMap = new HashMap<>();
-
-            for (int i : indices) {
-                String line = lines.get(i);
+            for (int rowNum : rowNumbers) {
+                if (rowNum < 0 || rowNum >= lines.size()) {
+                    outputArea.setText("Row number " + rowNum + " is out of range (0-" + (lines.size() - 1) + ")");
+                    return;
+                }
+                String line = lines.get(rowNum);
                 int commaIndex = line.indexOf(',');
-                contentMap.put(i, line.substring(commaIndex + 1).trim());
+                if (commaIndex != -1) {
+                    contentMap.put(rowNum, line.substring(commaIndex + 1).trim());
+                } else {
+                    contentMap.put(rowNum, line);
+                }
             }
 
-            Collections.rotate(indices, 1);
+            // Rotate content cyclically
+            Collections.rotate(rowNumbers, 1);
 
-            for (int i = 0; i < indices.size(); i++) {
-                int index = indices.get(i);
-                lines.set(index, index + ", " + contentMap.get(indices.get((i + 1) % indices.size())));
+            // Reassign rotated content back to rows
+            for (int i = 0; i < rowNumbers.size(); i++) {
+                int currentRow = rowNumbers.get(i);
+                int previousContent = rowNumbers.get((i + rowNumbers.size() - 1) % rowNumbers.size());
+                lines.set(currentRow, currentRow + ", " + contentMap.get(previousContent));
             }
 
             modifiedLines = lines;
             outputArea.setText(String.join("\n", lines));
             logChange("Swapped the rows: " + swapInput);
+        } catch (NumberFormatException e) {
+            outputArea.setText("Invalid row numbers provided.");
         } catch (Exception e) {
             outputArea.setText("Failed swapping the rows: " + e.getMessage());
         }
@@ -470,10 +490,14 @@ public class APEGUI extends JFrame {
             List<String> lines = Files.readAllLines(Paths.get(filePath));
             Map<String, Integer> matches = new HashMap<>();
 
+            // Find rows containing the search keys in their content
             for (String key : keys) {
                 int foundIndex = -1;
                 for (int i = 0; i < lines.size(); i++) {
-                    if (lines.get(i).contains(key.trim())) {
+                    String line = lines.get(i);
+                    int commaIndex = line.indexOf(',');
+                    String content = (commaIndex != -1) ? line.substring(commaIndex + 1).trim() : line;
+                    if (content.contains(key.trim())) {
                         foundIndex = i;
                         break;
                     }
@@ -485,31 +509,43 @@ public class APEGUI extends JFrame {
                 matches.put(key.trim(), foundIndex);
             }
 
+            // Show confirmation dialog
             StringBuilder confirmation = new StringBuilder("Confirm the following results:\n");
             for (String key : matches.keySet()) {
                 confirmation.append("[" + key + "] => row " + matches.get(key) + "\n");
             }
 
-            int result = JOptionPane.showConfirmDialog(this, confirmation.toString(), "Confirm swap", JOptionPane.YES_NO_OPTION);
-            if (result != JOptionPane.YES_OPTION) {
+            int dialogResult = JOptionPane.showConfirmDialog(this, confirmation.toString(), "Confirm swap", JOptionPane.YES_NO_OPTION);
+            if (dialogResult != JOptionPane.YES_OPTION) {
                 outputArea.setText("Canceled.");
                 return;
             }
 
-            List<Integer> indices = new ArrayList<>(matches.values());
-            Collections.rotate(indices, 1);
-            for (int i = 0; i < keys.length; i++) {
-                int index = matches.get(keys[i].trim());
-                int commaIndex = lines.get(index).indexOf(',');
-                String newContent = lines.get(indices.get(i)).substring(commaIndex + 1).trim();
-                lines.set(index, index + ", " + newContent);
+            // Extract content from matched rows
+            Map<Integer, String> contentMap = new HashMap<>();
+            for (int rowNum : matches.values()) {
+                String line = lines.get(rowNum);
+                int commaIndex = line.indexOf(',');
+                String content = (commaIndex != -1) ? line.substring(commaIndex + 1).trim() : line;
+                contentMap.put(rowNum, content);
+            }
+
+            // Rotate the list of row indices to swap their content
+            List<Integer> rowIndices = new ArrayList<>(matches.values());
+            Collections.rotate(rowIndices, 1);
+
+            // Reassign rotated content back to rows, maintaining row numbers
+            for (int i = 0; i < rowIndices.size(); i++) {
+                int currentRow = rowIndices.get(i);
+                int previousRow = rowIndices.get((i + rowIndices.size() - 1) % rowIndices.size());
+                lines.set(currentRow, currentRow + ", " + contentMap.get(previousRow));
             }
 
             modifiedLines = lines;
             outputArea.setText(String.join("\n", lines));
             logChange("Swapped the following rows based on content: " + matchStringsField.getText());
         } catch (IOException e) {
-            outputArea.setText("Failed swapping the rowsbased on the following content: " + e.getMessage());
+            outputArea.setText("Failed swapping the rows based on the following content: " + e.getMessage());
         }
     }
 
@@ -574,6 +610,62 @@ public class APEGUI extends JFrame {
 
         // default root name if nothing else is found
         return "root:";
+    }
+
+    // Detects actual volume name from a file path using diskutil
+    private String getVolumeNameFromPath(String canonicalPath) {
+        try {
+            // Get the device from FileStore
+            Path path = Paths.get(canonicalPath);
+            FileStore store = Files.getFileStore(path);
+            String deviceName = store.name(); // e.g., /dev/disk3s5
+            
+            // Extract the base disk (e.g., disk3 from /dev/disk3s5)
+            String baseDisk = deviceName.replaceAll("/dev/", "").replaceAll("s\\d+.*$", "");
+            
+            // Use diskutil list to get volume information
+            ProcessBuilder pb = new ProcessBuilder("diskutil", "list");
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+            
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            String containerVolumeName = null;
+            
+            while ((line = reader.readLine()) != null) {
+                
+                // Looking for lines like: "     1:                APFS Volume mbadrive                12.3 GB    disk3s1"
+                if (line.contains("APFS Volume") && line.contains(baseDisk + "s")) {
+                    // Extract volume name - it's between "APFS Volume" and the size
+                    int volumeIndex = line.indexOf("APFS Volume");
+                    if (volumeIndex != -1) {
+                        String afterVolume = line.substring(volumeIndex + 11).trim();
+                        // Split by whitespace to get the name and size
+                        String[] parts = afterVolume.split("\\s+");
+                        if (parts.length > 0) {
+                            String volumeName = parts[0];
+                            // Only consider the main volume (not Preboot, Recovery, VM)
+                            if (!volumeName.equals("Preboot") && !volumeName.equals("Recovery") && 
+                                !volumeName.equals("VM") && !volumeName.equals("Data") && 
+                                !volumeName.matches(".*update.*") && !volumeName.matches(".*Snapshot.*")) {
+                                containerVolumeName = volumeName;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            process.waitFor();
+            
+            if (containerVolumeName != null && !containerVolumeName.isEmpty()) {
+                return containerVolumeName;
+            }
+            
+            return "Macintosh HD";
+        } catch (Exception e) {
+            return "Macintosh HD";
+        }
     }
 
     private void clearPreview() {

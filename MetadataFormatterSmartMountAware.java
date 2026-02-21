@@ -7,27 +7,27 @@ public class MetadataFormatterSmartMountAware {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        // 1. Kysy järjestysnumero
-        System.out.print("Anna järjestysnumero (esim. 94): ");
+        // 1. Ask for sequence number
+        System.out.print("Enter sequence number (e.g., 94): ");
         int number = scanner.nextInt();
-        scanner.nextLine(); // tyhjennä rivinvaihto
+        scanner.nextLine(); // clear line break
 
-        // 2. Kysy tiedoston polku
-        System.out.print("Anna tiedoston koko polku: ");
+        // 2. Ask for file path
+        System.out.print("Enter full file path: ");
         String inputPath = scanner.nextLine().trim();
 
         File inputFile = new File(inputPath);
 
         if (!inputFile.exists()) {
-            System.err.println("Virhe: Tiedostoa ei löydy polusta: " + inputPath);
+            System.err.println("Error: File not found at path: " + inputPath);
             return;
         }
 
         String canonicalPath;
         try {
-            canonicalPath = inputFile.getCanonicalPath(); // paljastaa mounttipisteet ja symlinkit
+            canonicalPath = inputFile.getCanonicalPath(); // reveals mount points and symlinks
         } catch (IOException e) {
-            System.err.println("Virheellinen polku.");
+            System.err.println("Invalid path.");
             return;
         }
 
@@ -35,28 +35,28 @@ public class MetadataFormatterSmartMountAware {
         String relativePath;
 
         if (canonicalPath.startsWith("/Volumes/")) {
-            // esim: /Volumes/mbadrive/Users/henri/Music/song.aiff
+            // e.g., /Volumes/mbadrive/Users/henri/Music/song.aiff
             String remainder = canonicalPath.substring("/Volumes/".length()); // mbadrive/Users/...
             int slashIndex = remainder.indexOf('/');
             if (slashIndex != -1) {
                 String volumeName = remainder.substring(0, slashIndex);
-                relativePath = remainder.substring(slashIndex); // esim. /Users/henri/...
+                relativePath = remainder.substring(slashIndex); // e.g., /Users/henri/...
                 volumePrefix = volumeName + ":";
             } else {
-                System.err.println("Virhe: Polussa ei ole kansiorakennetta levynimen jälkeen.");
+                System.err.println("Error: Path does not have directory structure after volume name.");
                 return;
             }
         } else {
-            // oletetaan root-levy
+            // assumed root volume
             volumePrefix = getRootVolumeName();
             relativePath = canonicalPath;
         }
 
-        // 3. Poimi tiedoston esitysnimi ilman päätettä
+        // 3. Extract file display name without extension
         String fileName = inputFile.getName();
         String displayName = fileName.replaceFirst("\\.[^.]+$", "");
 
-        // 4. Muodosta lopullinen rivi
+        // 4. Build final row
         String result = String.format(
             "%d, \"%s%s\" \"%s\";",
             number,
@@ -65,11 +65,11 @@ public class MetadataFormatterSmartMountAware {
             displayName
         );
 
-        System.out.println("Muodostettu merkkijono:");
+        System.out.println("Generated string:");
         System.out.println(result);
     }
 
-    // MacOS: käytetään oletuksena root-levyä
+    // macOS: use root volume by default
     private static String getRootVolumeName() {
         return "Macintosh HD:";
     }

@@ -6,16 +6,16 @@ public class MetadataFormatterWithVolumeName {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.print("Anna järjestysnumero (esim. 94): ");
+        System.out.print("Enter sequence number (e.g., 94): ");
         int number = scanner.nextInt();
         scanner.nextLine();
 
-        System.out.print("Anna tiedoston koko polku: ");
+        System.out.print("Enter full file path: ");
         String inputPath = scanner.nextLine().trim();
         File inputFile = new File(inputPath);
 
         if (!inputFile.exists()) {
-            System.err.println("Virhe: Tiedostoa ei löydy.");
+            System.err.println("Error: File not found.");
             return;
         }
 
@@ -23,22 +23,22 @@ public class MetadataFormatterWithVolumeName {
         try {
             canonicalPath = inputFile.getCanonicalPath();
         } catch (IOException e) {
-            System.err.println("Virheellinen polku.");
+            System.err.println("Invalid path.");
             return;
         }
 
         String mountPoint = getMountPoint(inputFile);
         if (mountPoint == null) {
-            System.err.println("Mount-pisteen tunnistus epäonnistui.");
+            System.err.println("Mount point detection failed.");
             return;
         }
 
         String volumeName = getVolumeName(mountPoint);
         if (volumeName == null || volumeName.isEmpty()) {
-            volumeName = "Tuntematon Levy";
+            volumeName = "Unknown Volume";
         }
 
-        // Muodosta suhteellinen polku
+        // Build relative path
         String relativePath = canonicalPath.substring(mountPoint.length());
         if (!relativePath.startsWith("/")) {
             relativePath = "/" + relativePath;
@@ -55,11 +55,11 @@ public class MetadataFormatterWithVolumeName {
             displayName
         );
 
-        System.out.println("Muodostettu merkkijono:");
+        System.out.println("Generated string:");
         System.out.println(result);
     }
 
-    // Suorittaa df ja hakee mount-pisteen
+    // Execute df and retrieve mount point
     private static String getMountPoint(File file) {
         try {
             ProcessBuilder pb = new ProcessBuilder("df", file.getAbsolutePath());
@@ -85,13 +85,13 @@ public class MetadataFormatterWithVolumeName {
 
             process.waitFor();
         } catch (IOException | InterruptedException e) {
-            System.err.println("Virhe df-komennossa: " + e.getMessage());
+            System.err.println("Error in df command: " + e.getMessage());
         }
 
         return null;
     }
 
-    // Suorittaa diskutil info ja hakee volume name
+    // Execute diskutil info and retrieve volume name
     private static String getVolumeName(String mountPoint) {
         try {
             ProcessBuilder pb = new ProcessBuilder("diskutil", "info", mountPoint);
@@ -109,7 +109,7 @@ public class MetadataFormatterWithVolumeName {
 
             process.waitFor();
         } catch (IOException | InterruptedException e) {
-            System.err.println("Virhe diskutil-komennossa: " + e.getMessage());
+            System.err.println("Error in diskutil command: " + e.getMessage());
         }
 
         return null;

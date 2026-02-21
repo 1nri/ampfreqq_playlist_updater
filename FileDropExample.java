@@ -9,17 +9,17 @@ public class FileDropExample {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Raahaa tiedosto tähän");
+            JFrame frame = new JFrame("Drag file here");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(500, 150);
 
-            // Tiedoston nimen ja polun vastaanottava tekstikenttä
-            JTextField filePathField = new JTextField("Pudota tiedosto tähän");
+            // Text field for receiving file name and pathtä
+            JTextField filePathField = new JTextField("Drop file here");
             filePathField.setEditable(false);
             filePathField.setFont(new Font("Monospaced", Font.PLAIN, 14));
             filePathField.setHorizontalAlignment(JTextField.CENTER);
 
-            // Lisätään pudotustuki
+            // Add drop support
             new DropTarget(filePathField, new DropTargetListener() {
                 @Override
                 public void dragEnter(DropTargetDragEvent dtde) {}
@@ -48,7 +48,7 @@ public class FileDropExample {
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();
-                        filePathField.setText("Virhe tiedoston lukemisessa");
+                        filePathField.setText("Error reading file");
                     }
                 }
             });
