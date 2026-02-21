@@ -7,10 +7,8 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.event.*;
 import java.io.*;
 import java.nio.file.*;
-import java.nio.file.attribute.FileStoreAttributeView;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -33,10 +31,8 @@ public class APEGUI extends JFrame {
     private JButton swapByContentButton;
     private JButton saveButton;
     private JButton clearPreviewButton;
-    private JButton previewContentButton;
     private JTextArea outputArea;
     private JTextArea logArea;
-    private String absolutePath;
 
     /* This is not functional as of yet
         SwingUtilities.invokeLater(() -> {
@@ -86,7 +82,7 @@ public class APEGUI extends JFrame {
         swapByContentButton = new JButton("Swap Rows By Content");
         saveButton = new JButton("Save Changes");
         clearPreviewButton = new JButton("Clear Preview");
-        previewContentButton = new JButton("Preview Content");
+        JButton musicDirectoryButton = new JButton("Music Directory...");
 
         filePathField.setDragEnabled(true);
         newLineField.setDragEnabled(true);
@@ -94,6 +90,8 @@ public class APEGUI extends JFrame {
         filePathField.setEditable(false);
         filePathField.setFont(new Font("Monospaced", Font.PLAIN, 14));
         filePathField.setHorizontalAlignment(JTextField.CENTER);
+        filePathField.setBackground(new Color(220, 220, 220)); // Gray background
+        filePathField.setForeground(Color.BLACK);
 /*
             // Lisätään pudotustuki
             new DropTarget(filePathField, new DropTargetListener() {
@@ -178,14 +176,13 @@ public class APEGUI extends JFrame {
         panel.add(saveAsField);
         panel.add(saveButton);
 
-        panel.add(previewContentButton);
+        panel.add(musicDirectoryButton);
         panel.add(previewButton);
         panel.add(clearPreviewButton);
 
         add(panel, BorderLayout.NORTH);
         add(new JScrollPane(outputArea), BorderLayout.CENTER);
         add(new JScrollPane(logArea), BorderLayout.SOUTH);
-        absolutePath = "";
 
         new DropTarget(newLineField, new DropTargetListener() {
                 @Override
@@ -224,7 +221,6 @@ public class APEGUI extends JFrame {
                 }
 
                 private void prepareFileName(List<?> object) {
-                    int number = 0; // default number
                     File file = (File) object.get(0);
                     String canonicalPath;
                     try {
@@ -240,14 +236,8 @@ public class APEGUI extends JFrame {
                         || file.getName().endsWith(".aiff") || file.getName().endsWith(".flac"))
                         {
                             
-                            try {
-                                absolutePath = file.getCanonicalPath(); // resolves symlinks and gets the absolute path
-                                } 
-                                catch (IOException e) {
-                                    System.err.println("Incorrect path.");
-                                    return;
-                                }}
-                                else{
+                        } 
+                        else{
                             outputArea.setText("Please drop a supported audio file.");
                             return;
                         }
@@ -345,7 +335,7 @@ public class APEGUI extends JFrame {
         swapByContentButton.addActionListener(e -> swapLinesByContent());
         saveButton.addActionListener(e -> saveChanges());
         clearPreviewButton.addActionListener(e -> clearPreview());
-        previewContentButton.addActionListener(e -> previewContent());
+        musicDirectoryButton.addActionListener(e -> selectMusicDirectory());
     }
 
     private void logChange(String description) {
@@ -365,11 +355,47 @@ public class APEGUI extends JFrame {
 
     private void browseFile() {
         JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
-            filePathField.setText(selectedFile.getAbsolutePath());
-            logChange("File selected: " + selectedFile.getName());
+            File selected = fileChooser.getSelectedFile();
+            if (selected.isDirectory()) {
+                // User selected a directory - load multiple audio files
+                if (rowNumberField.getText().trim().isEmpty()) {
+                    outputArea.setText("Please enter a starting row number for batch import.");
+                    return;
+                }
+                try {
+                    int startRow = Integer.parseInt(rowNumberField.getText().trim());
+                    addMultipleRows(selected, startRow);
+                } catch (NumberFormatException e) {
+                    outputArea.setText("Invalid starting row number.");
+                }
+            } else {
+                // User selected a file
+                filePathField.setText(selected.getAbsolutePath());
+                logChange("File selected: " + selected.getName());
+            }
+        }
+    }
+
+    private void selectMusicDirectory() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fileChooser.setDialogTitle("Select Music Directory");
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedDirectory = fileChooser.getSelectedFile();
+            if (rowNumberField.getText().trim().isEmpty()) {
+                outputArea.setText("Please enter a starting row number for batch import.");
+                return;
+            }
+            try {
+                int startRow = Integer.parseInt(rowNumberField.getText().trim());
+                addMultipleRows(selectedDirectory, startRow);
+            } catch (NumberFormatException e) {
+                outputArea.setText("Invalid starting row number.");
+            }
         }
     }
 
@@ -484,7 +510,6 @@ public class APEGUI extends JFrame {
     private void swapLinesByContent() {
         String filePath = filePathField.getText().trim();
         String[] keys = matchStringsField.getText().split(",");
-        String[] targets = matchTargetsField.getText().split(",");
 
         try {
             List<String> lines = Files.readAllLines(Paths.get(filePath));
@@ -565,6 +590,12 @@ public class APEGUI extends JFrame {
             saveLogAutomatically(original);
             outputArea.setText("Saved changes to file: " + target);
             logChange("Saved to file: " + target.getFileName());
+            
+            // Auto-preview the saved content
+            previewContent();
+            
+            // Clear input fields
+            clearInputs();
         } catch (IOException e) {
             outputArea.setText("Error saving the file: " + e.getMessage());
         }
@@ -588,29 +619,6 @@ public class APEGUI extends JFrame {
         }
     }
 
-    // Determines name for root disk
-    private String getRootVolumeName() {
-        File root = new File("/");
-        File[] roots = File.listRoots();
-
-        for (File f : roots) {
-            try {
-                if (f.getCanonicalPath().equals(root.getCanonicalPath())) {
-                    // "/" is this root, so we can use its name
-                    String[] pathParts = f.getAbsolutePath().split("/");
-                    if (pathParts.length > 0) {
-                        // Return default root name
-                        return "Macintosh HD:";
-                    }
-                }
-            } catch (IOException e) {
-                outputArea.setText("Couldn't read the file");
-            }
-        }
-
-        // default root name if nothing else is found
-        return "root:";
-    }
 
     // Detects actual volume name from a file path using diskutil
     private String getVolumeNameFromPath(String canonicalPath) {
@@ -666,6 +674,119 @@ public class APEGUI extends JFrame {
         } catch (Exception e) {
             return "Macintosh HD";
         }
+    }
+
+    private void clearInputs() {
+        rowNumberField.setText("");
+        newLineField.setText("");
+        swapRowsField.setText("");
+        saveAsField.setText("");
+        matchStringsField.setText("");
+        matchTargetsField.setText("");
+        modifiedLines = null;
+    }
+
+    private void addMultipleRows(File directory, int startRow) {
+        File[] audioFiles = directory.listFiles((dir, name) -> 
+            name.endsWith(".mp3") || name.endsWith(".m4a") || name.endsWith(".wav") ||
+            name.endsWith(".aiff") || name.endsWith(".flac")
+        );
+        
+        if (audioFiles == null || audioFiles.length == 0) {
+            outputArea.setText("No audio files found in the selected directory.");
+            return;
+        }
+        
+        // Sort files alphabetically
+        java.util.Arrays.sort(audioFiles);
+        
+        String originalPath = filePathField.getText().trim();
+        if (originalPath.isEmpty()) {
+            outputArea.setText("Please select a playlist file first.");
+            return;
+        }
+        
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(originalPath));
+            List<String> contentList = new ArrayList<>();
+            
+            // Extract content from existing rows
+            for (String line : lines) {
+                int commaIndex = line.indexOf(',');
+                if (commaIndex != -1) {
+                    String content = line.substring(commaIndex + 1).trim();
+                    contentList.add(content);
+                } else {
+                    contentList.add(line);
+                }
+            }
+            
+            // Validate starting row
+            if (startRow < 0 || startRow > contentList.size()) {
+                outputArea.setText("Starting row number out of range. Valid range: 0 to " + contentList.size());
+                return;
+            }
+            
+            // Add all audio files starting at startRow
+            for (File audioFile : audioFiles) {
+                String contentOnly = prepareAudioFileContent(audioFile);
+                if (contentOnly != null) {
+                    contentList.add(startRow, contentOnly);
+                    startRow++;
+                }
+            }
+            
+            // Create preview with sequential numbering
+            List<String> previewLines = new ArrayList<>();
+            for (int i = 0; i < contentList.size(); i++) {
+                previewLines.add(i + ", " + contentList.get(i));
+            }
+            
+            modifiedLines = previewLines;
+            outputArea.setText(String.join("\n", previewLines));
+            logChange("Preview: " + audioFiles.length + " audio files added starting at row " + (startRow - audioFiles.length));
+        } catch (IOException ex) {
+            outputArea.setText("Error processing directory: " + ex.getMessage());
+        }
+    }
+    
+    private String prepareAudioFileContent(File file) {
+        String canonicalPath;
+        try {
+            canonicalPath = file.getCanonicalPath();
+        } catch (IOException e) {
+            System.err.println("Invalid path: " + file.getName());
+            return null;
+        }
+        
+        String volumePrefix;
+        String relativePath;
+        
+        if (canonicalPath.startsWith("/Volumes/")) {
+            String remainder = canonicalPath.substring("/Volumes/".length());
+            int slashIndex = remainder.indexOf('/');
+            if (slashIndex != -1) {
+                String volumeName = remainder.substring(0, slashIndex);
+                relativePath = remainder.substring(slashIndex);
+                volumePrefix = volumeName + ":";
+            } else {
+                return null;
+            }
+        } else {
+            String detectedVolumeName = getVolumeNameFromPath(canonicalPath);
+            volumePrefix = detectedVolumeName + ":";
+            relativePath = canonicalPath;
+        }
+        
+        String fileName = file.getName();
+        String displayName = fileName.replaceFirst("\\.[^.]+$", "");
+        
+        return String.format(
+            "\"%s%s\" \"%s\";",
+            volumePrefix,
+            relativePath,
+            displayName
+        );
     }
 
     private void clearPreview() {
