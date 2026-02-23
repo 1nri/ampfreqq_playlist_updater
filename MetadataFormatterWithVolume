@@ -1,0 +1,91 @@
+import java.io.File;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class MetadataFormatterWithVolume {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        // 1. Ask for sequence number
+        System.out.print("Enter sequence number (e.g., 94): ");
+        int number = scanner.nextInt();
+        scanner.nextLine(); // clear line break
+
+        // 2. Ask for file path
+        System.out.print("Enter full file path: ");
+        String inputPath = scanner.nextLine().trim();
+
+        File file = new File(inputPath);
+
+        if (!file.exists()) {
+            System.err.println("Error: File not found at path: " + inputPath);
+            return;
+        }
+
+        String absolutePath = "";
+        try {
+            absolutePath = file.getCanonicalPath(); // resolves symlinks and ..
+        } catch (IOException e) {
+            System.err.println("Invalid path.");
+            return;
+        }
+
+        // 3. Determine partition name (volume name)
+        String volumePrefix = "";
+
+        if (absolutePath.startsWith("/Volumes/")) {
+            // Example: /Volumes/mbadrive/...
+            String remainder = absolutePath.substring("/Volumes/".length());
+            int nextSlash = remainder.indexOf('/');
+            if (nextSlash != -1) {
+                String volumeName = remainder.substring(0, nextSlash);
+                volumePrefix = volumeName + ":";
+                absolutePath = "/" + remainder; // remove /Volumes portion
+            }
+        } else {
+            // Example: /Users/... → assumed as root volume
+            volumePrefix = getRootVolumeName();
+        }
+
+        // 4. Extract file display name (without extension)
+        String fileName = file.getName();
+        String displayName = fileName.replaceFirst("\\.[^.]+$", "");
+
+        // 5. Build final string
+        String result = String.format(
+            "%d, \"%s%s\" \"%s\";",
+            number,
+            volumePrefix,
+            absolutePath,
+            displayName
+        );
+
+        System.out.println("Generated string:");
+        System.out.println(result);
+    }
+
+    // Attempts to determine the root volume name (e.g., Macintosh HD)
+    private static String getRootVolumeName() {
+        File root = new File("/");
+        File[] roots = File.listRoots();
+
+        for (File f : roots) {
+            try {
+                if (f.getCanonicalPath().equals(root.getCanonicalPath())) {
+                    // We know that "/" is this root
+                    String[] pathParts = f.getAbsolutePath().split("/");
+                    if (pathParts.length > 0) {
+                        // Return default name for root volume, e.g., "Macintosh HD:"
+                        return "Macintosh HD:";
+                    }
+                }
+            } catch (IOException e) {
+                // Continue
+            }
+        }
+
+        // If not available, use default
+        return "root:";
+    }
+}
