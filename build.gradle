@@ -2,7 +2,15 @@ apply plugin: 'java'
 
 group = 'com.ampfreqq'
 version = '1.0'
-sourceCompatibility = 11
+sourceCompatibility = 21
+targetCompatibility = 21
+
+// Configure Gradle Java toolchain to use Java 21 when available
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
 
 repositories {
     mavenCentral()
