@@ -54,18 +54,24 @@ task runTests(type: Test) {
 
 task unitTests(type: Test) {
     useJUnit {
-        includeClasses 'PlaylistUtilityTest'
+        filter {
+            includeTestsMatching 'PlaylistUtilityTest'
+        }
     }
 }
 
 task integrationTests(type: Test) {
     useJUnit {
-        includeClasses 'PlaylistEditorIntegrationTest'
+        filter {
+            includeTestsMatching 'PlaylistEditorIntegrationTest'
+        }
     }
 }
 
 // Run all tests
 defaultTasks 'runTests'
+
+def testResultsListener = new TestResultsListener()
 
 // Print test summary
 afterEvaluate {
@@ -111,4 +117,4 @@ class TestResultsListener implements TestListener {
     void afterTest(TestDescriptor test, TestResult result) {}
 }
 
-test.addTestListener(new TestResultsListener())
+test.addTestListener(testResultsListener)
