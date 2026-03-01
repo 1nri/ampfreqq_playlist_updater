@@ -6,6 +6,7 @@
 // - drag & drop tiedostoille ja hakemistoille
 
 public class BandcampEditorGUI_2{
+public class BandcampEditorGUI {
     // Tämä on vain merkki. Varsinainen täydellinen koodi kirjoitetaan tähän tarvittaessa.
     // Koska koodi on erittäin pitkä, sen kirjoitus suoraan tähän ei ole tehokkain tapa.
     // Käytetään tarvittaessa tallennettua versiota uudelleen.
