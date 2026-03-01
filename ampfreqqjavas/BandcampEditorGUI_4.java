@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+public class BandcampEditorGUI_4 {
 public class BandcampEditorGUI {
     private static DefaultListModel<String> listModel = new DefaultListModel<>();
     private static File currentFile = null;
@@ -22,6 +23,7 @@ public class BandcampEditorGUI {
         if (args.length >= 3) {
             handleCLI(args);
         } else {
+            SwingUtilities.invokeLater(BandcampEditorGUI_4::createAndShowGUI);
             SwingUtilities.invokeLater(BandcampEditorGUI::createAndShowGUI);
         }
     }
@@ -34,6 +36,7 @@ public class BandcampEditorGUI {
 
             String newPath = args[1];
             Path newFile = Paths.get(newPath);
+            String newLine = "\"mbadrive:" + newFile.toString() + " " + newFile.getFileName().toString() + ";";
             String newLine = ""mbadrive:" + newFile.toString() + "" "" + newFile.getFileName().toString() + """;
 
             lines.add(insertIndex, newLine);
@@ -104,6 +107,7 @@ public class BandcampEditorGUI {
     }
 
     private static String makeLineFromFile(File file) {
+        return "\"mbadrive:" + file.getAbsolutePath() + " " + file.getName() + ";";
         return ""mbadrive:" + file.getAbsolutePath() + "" "" + file.getName() + """;
     }
 

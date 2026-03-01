@@ -131,6 +131,12 @@ public class BandcampEditorGUI extends JFrame {
                         if (audioFiles != null) {
                             for (int i = 0; i < audioFiles.length; i++) {
                                 String name = audioFiles[i].getName();
+                                String path = audioFiles[i].getAbsolutePath().replace("\\", "/");
+                                newLines.add(i + ", " + "\"mbadrive:" + path + " " + name.replaceAll("\\.aiff$", "") + "\"");
+                            }
+                        }
+                        modifiedLines = newLines;
+                        outputArea.setText(String.join("", newLines));
                                 String path = audioFiles[i].getAbsolutePath().replace("\", "/");
                                 newLines.add(i + ", "mbadrive:" + path + "" "" + name.replaceAll("\.aiff$", "") + """);
                             }
@@ -151,6 +157,7 @@ public class BandcampEditorGUI extends JFrame {
 
     private void logChange(String description) {
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        changeLog.append("[").append(time).append("] ").append(description).append("");
         changeLog.append("[").append(time).append("] ").append(description).append("
 ");
         logArea.setText(changeLog.toString());

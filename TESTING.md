@@ -87,7 +87,7 @@ The test suite consists of three main components:
 
 ### Prerequisites
 
-1. **Java Development Kit (JDK)** - Version 11 or higher
+1. **Java Development Kit (JDK)** - Java 21 LTS (recommended)
 2. **JUnit 4** - Unit testing framework
 3. **Hamcrest** - Assertion library (required by JUnit)
 
@@ -167,6 +167,15 @@ java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore Pla
 ./gradlew test
 ```
 
+### Java 21 + Wrapper (Current Project Setup)
+
+```bash
+cd /Users/henrijuvonen/Documents/GitHub/ampfreqq_playlist_updater
+export JAVA_HOME="$HOME/.jdk/jdk-21.0.8/jdk-21.0.8+9/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
+./gradlew test --console=plain --no-daemon
+```
+
 ### Option 4: Using Maven (if configured)
 
 ```bash
@@ -223,10 +232,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - name: Set up JDK 11
+    - name: Set up JDK 21
       uses: actions/setup-java@v2
       with:
-        java-version: '11'
+        java-version: '21'
     
     - name: Download JUnit and Hamcrest
       run: |

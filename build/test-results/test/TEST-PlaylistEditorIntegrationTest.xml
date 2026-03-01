@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="PlaylistEditorIntegrationTest" tests="28" skipped="0" failures="0" errors="0" timestamp="2026-03-01T00:17:12.222Z" hostname="mba.local" time="0.745">
+  <properties/>
+  <testcase name="testFileFormat_validPlaylistStructure" classname="PlaylistEditorIntegrationTest" time="0.035"/>
+  <testcase name="testWorkflow_complexSequence" classname="PlaylistEditorIntegrationTest" time="0.031"/>
+  <testcase name="testEdgeCase_singleRowPlaylist" classname="PlaylistEditorIntegrationTest" time="0.005"/>
+  <testcase name="testAudioFileDetection_multipleSupportedFormats" classname="PlaylistEditorIntegrationTest" time="0.017"/>
+  <testcase name="testWorkflow_swapNonAdjacentRows" classname="PlaylistEditorIntegrationTest" time="0.005"/>
+  <testcase name="testEdgeCase_emptyPlaylist" classname="PlaylistEditorIntegrationTest" time="0.003"/>
+  <testcase name="testFileFormat_afterModification" classname="PlaylistEditorIntegrationTest" time="0.006"/>
+  <testcase name="testEdgeCase_largePlaylist" classname="PlaylistEditorIntegrationTest" time="0.006"/>
+  <testcase name="testWorkflow_swapAdjacentRows" classname="PlaylistEditorIntegrationTest" time="0.003"/>
+  <testcase name="testEdgeCase_specialCharactersInFilename" classname="PlaylistEditorIntegrationTest" time="0.003"/>
+  <testcase name="testAudioFileDetection_sorting" classname="PlaylistEditorIntegrationTest" time="0.009"/>
+  <testcase name="testRoundTrip_readModifyRead" classname="PlaylistEditorIntegrationTest" time="0.004"/>
+  <testcase name="testWorkflow_insertRowInMiddle" classname="PlaylistEditorIntegrationTest" time="0.008"/>
+  <testcase name="testWorkflow_addSingleRow" classname="PlaylistEditorIntegrationTest" time="0.003"/>
+  <testcase name="testFileFormat_validPlaylistStructure" classname="PlaylistEditorIntegrationTest" time="0.003"/>
+  <testcase name="testWorkflow_complexSequence" classname="PlaylistEditorIntegrationTest" time="0.008"/>
+  <testcase name="testEdgeCase_singleRowPlaylist" classname="PlaylistEditorIntegrationTest" time="0.011"/>
+  <testcase name="testAudioFileDetection_multipleSupportedFormats" classname="PlaylistEditorIntegrationTest" time="0.006"/>
+  <testcase name="testWorkflow_swapNonAdjacentRows" classname="PlaylistEditorIntegrationTest" time="0.005"/>
+  <testcase name="testEdgeCase_emptyPlaylist" classname="PlaylistEditorIntegrationTest" time="0.003"/>
+  <testcase name="testFileFormat_afterModification" classname="PlaylistEditorIntegrationTest" time="0.003"/>
+  <testcase name="testEdgeCase_largePlaylist" classname="PlaylistEditorIntegrationTest" time="0.005"/>
+  <testcase name="testWorkflow_swapAdjacentRows" classname="PlaylistEditorIntegrationTest" time="0.003"/>
+  <testcase name="testEdgeCase_specialCharactersInFilename" classname="PlaylistEditorIntegrationTest" time="0.003"/>
+  <testcase name="testAudioFileDetection_sorting" classname="PlaylistEditorIntegrationTest" time="0.004"/>
+  <testcase name="testRoundTrip_readModifyRead" classname="PlaylistEditorIntegrationTest" time="0.003"/>
+  <testcase name="testWorkflow_insertRowInMiddle" classname="PlaylistEditorIntegrationTest" time="0.003"/>
+  <testcase name="testWorkflow_addSingleRow" classname="PlaylistEditorIntegrationTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -2,7 +2,15 @@ apply plugin: 'java'
 
 group = 'com.ampfreqq'
 version = '1.0'
-sourceCompatibility = 11
+sourceCompatibility = 21
+targetCompatibility = 21
+
+// Configure Gradle Java toolchain to use Java 21 when available
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
 
 repositories {
     mavenCentral()
@@ -46,18 +54,24 @@ task runTests(type: Test) {
 
 task unitTests(type: Test) {
     useJUnit {
-        includeClasses 'PlaylistUtilityTest'
+        filter {
+            includeTestsMatching 'PlaylistUtilityTest'
+        }
     }
 }
 
 task integrationTests(type: Test) {
     useJUnit {
-        includeClasses 'PlaylistEditorIntegrationTest'
+        filter {
+            includeTestsMatching 'PlaylistEditorIntegrationTest'
+        }
     }
 }
 
 // Run all tests
 defaultTasks 'runTests'
+
+def testResultsListener = new TestResultsListener()
 
 // Print test summary
 afterEvaluate {
@@ -103,4 +117,4 @@ class TestResultsListener implements TestListener {
     void afterTest(TestDescriptor test, TestResult result) {}
 }
 
-test.addTestListener(new TestResultsListener())
+test.addTestListener(testResultsListener)

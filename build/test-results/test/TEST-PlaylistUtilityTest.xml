@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="PlaylistUtilityTest" tests="64" skipped="0" failures="0" errors="0" timestamp="2026-03-01T00:17:12.391Z" hostname="mba.local" time="0.894">
+  <properties/>
+  <testcase name="testIsSupportedAudioFile_caseInsensitive" classname="PlaylistUtilityTest" time="0.044"/>
+  <testcase name="testAddRow_atEnd" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testReadPlaylistFile" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testAddRow_invalidRowNumberNegative" classname="PlaylistUtilityTest" time="0.004"/>
+  <testcase name="testGetAudioFilesInDirectory" classname="PlaylistUtilityTest" time="0.008"/>
+  <testcase name="testPrepareAudioFileContent" classname="PlaylistUtilityTest" time="0.208"/>
+  <testcase name="testPrepareAudioFileContent_nonexistentFile" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testReadPlaylistFile_nonexistent" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testFormatForDisplay_empty" classname="PlaylistUtilityTest" time="0.004"/>
+  <testcase name="testAddRow_inMiddle" classname="PlaylistUtilityTest" time="0.006"/>
+  <testcase name="testSwapRows_adjacentRows" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testGetAudioFilesInDirectory_sorted" classname="PlaylistUtilityTest" time="0.004"/>
+  <testcase name="testReadPlaylistFile_removesRowNumbers" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testIsSupportedAudioFile_m4a" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testIsSupportedAudioFile_mp3" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testIsSupportedAudioFile_wav" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testIsSupportedAudioFile_unsupported" classname="PlaylistUtilityTest" time="0.004"/>
+  <testcase name="testSwapRowsByContent" classname="PlaylistUtilityTest" time="0.007"/>
+  <testcase name="testSwapRows_invalidRow1" classname="PlaylistUtilityTest" time="0.004"/>
+  <testcase name="testSwapRows_invalidRow2" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testSwapRows" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testAddRow_invalidRowNumberTooLarge" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testFormatForDisplay" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testGetAudioFilesInDirectory_notDirectory" classname="PlaylistUtilityTest" time="0.004"/>
+  <testcase name="testAddRow_renumberingCorrect" classname="PlaylistUtilityTest" time="0.004"/>
+  <testcase name="testPrepareAudioFileContent_format" classname="PlaylistUtilityTest" time="0.142"/>
+  <testcase name="testSwapRowsByContent_notFound" classname="PlaylistUtilityTest" time="0.004"/>
+  <testcase name="testIsSupportedAudioFile_aiff" classname="PlaylistUtilityTest" time="0.004"/>
+  <testcase name="testIsSupportedAudioFile_flac" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testAddRow_atBeginning" classname="PlaylistUtilityTest" time="0.004"/>
+  <testcase name="testIntegration_addAndSwapRows" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testIntegration_multipleAdditions" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testIsSupportedAudioFile_caseInsensitive" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testAddRow_atEnd" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testReadPlaylistFile" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testAddRow_invalidRowNumberNegative" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testGetAudioFilesInDirectory" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testPrepareAudioFileContent" classname="PlaylistUtilityTest" time="0.116"/>
+  <testcase name="testPrepareAudioFileContent_nonexistentFile" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testReadPlaylistFile_nonexistent" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testFormatForDisplay_empty" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testAddRow_inMiddle" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testSwapRows_adjacentRows" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testGetAudioFilesInDirectory_sorted" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testReadPlaylistFile_removesRowNumbers" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testIsSupportedAudioFile_m4a" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testIsSupportedAudioFile_mp3" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testIsSupportedAudioFile_wav" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testIsSupportedAudioFile_unsupported" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testSwapRowsByContent" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testSwapRows_invalidRow1" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testSwapRows_invalidRow2" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testSwapRows" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testAddRow_invalidRowNumberTooLarge" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testFormatForDisplay" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testGetAudioFilesInDirectory_notDirectory" classname="PlaylistUtilityTest" time="0.007"/>
+  <testcase name="testAddRow_renumberingCorrect" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testPrepareAudioFileContent_format" classname="PlaylistUtilityTest" time="0.113"/>
+  <testcase name="testSwapRowsByContent_notFound" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testIsSupportedAudioFile_aiff" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testIsSupportedAudioFile_flac" classname="PlaylistUtilityTest" time="0.002"/>
+  <testcase name="testAddRow_atBeginning" classname="PlaylistUtilityTest" time="0.003"/>
+  <testcase name="testIntegration_addAndSwapRows" classname="PlaylistUtilityTest" time="0.006"/>
+  <testcase name="testIntegration_multipleAdditions" classname="PlaylistUtilityTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
