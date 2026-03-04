@@ -3,7 +3,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class updater {
+public class Updater {
     public static void main(String[] args) {
         // Example usage
         String filePath = "/path/to/your/file.txt";

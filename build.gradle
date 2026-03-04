@@ -31,6 +31,9 @@ sourceSets {
             include '*.java'
             exclude '*Test.java'
             exclude '*TestSuite.java'
+            // Exclude backup/duplicate files with naming issues
+            exclude 'updater 2.java'
+            exclude 'APEGUI(1).java'
         }
     }
     test {
